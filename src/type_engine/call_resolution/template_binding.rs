@@ -84,6 +84,7 @@ pub(crate) fn bind_template_args(
     // bind after every argument that was written.
     let ordered = callable_bindings_last(callee.template_bindings, callee.parameters);
     let (written, omitted): (Vec<&(Atom, Atom)>, Vec<_>) = ordered.partition(is_written);
+    let mut variadic_tail: Option<Vec<&str>> = None;
 
     for (tpl_name, param_name) in written.into_iter().chain(omitted) {
         let Some(param_idx) = param_index(param_name) else {
@@ -112,30 +113,41 @@ pub(crate) fn bind_template_args(
                 None => continue,
             },
         };
+        // A variadic parameter binds its template from every argument it
+        // collects, so `@param T ...$values` takes their union.
+        let tail = if param.is_variadic {
+            variadic_tail.get_or_insert_with(|| {
+                crate::call_args::variadic_tail_text_args(callee.parameters, arg_texts)
+            })
+        } else {
+            &[][..]
+        };
 
-        if let Some(literal) = type_operator_bound_literal(tpl_bound, arg_text) {
-            insert_or_union(&mut subs, tpl_name.to_string(), literal);
-            continue;
-        }
+        for arg_text in std::iter::once(arg_text).chain(tail.iter().copied()) {
+            if let Some(literal) = type_operator_bound_literal(tpl_bound, arg_text) {
+                insert_or_union(&mut subs, tpl_name.to_string(), literal);
+                continue;
+            }
 
-        // A union `@param` names one binding site per alternative
-        // (`Collection<TKey, TValue>|array<TKey, TValue>`), and the one the
-        // argument's own shape matches is the one that should bind. Try
-        // them in order and stop at the first that resolves; a non-union
-        // hint yields a single mode, which is the path every other
-        // parameter takes.
-        for mode in candidate_binding_modes(tpl_name, param_hint) {
-            if apply_binding_mode(
-                &mut subs,
-                &mode,
-                tpl_name,
-                arg_text,
-                param_hint,
-                callee.template_bindings,
-                walker_types,
-                ctx,
-            ) {
-                break;
+            // A union `@param` names one binding site per alternative
+            // (`Collection<TKey, TValue>|array<TKey, TValue>`), and the one the
+            // argument's own shape matches is the one that should bind. Try
+            // them in order and stop at the first that resolves; a non-union
+            // hint yields a single mode, which is the path every other
+            // parameter takes.
+            for mode in candidate_binding_modes(tpl_name, param_hint) {
+                if apply_binding_mode(
+                    &mut subs,
+                    &mode,
+                    tpl_name,
+                    arg_text,
+                    param_hint,
+                    callee.template_bindings,
+                    walker_types,
+                    ctx,
+                ) {
+                    break;
+                }
             }
         }
     }

@@ -391,24 +391,7 @@ No outstanding items.
 
 ## Templates
 
-### B711. A variadic template parameter binds only the first argument
-
-**Impact: Low-Medium · Complexity: Low-Medium**
-
-```php
-/**
- * @template T
- * @param T ...$values
- * @return T
- */
-function first_of(...$values) { … }
-
-first_of(1, 'a');   // want 1|'a', get 1
-```
-
-A template that types a variadic parameter takes the union of every
-argument passed to it. We bind it from the first one. 15 assertions,
-through the `Faker::union()` helper the fixtures build union types with.
+No outstanding items.
 
 ## Name resolution
 
