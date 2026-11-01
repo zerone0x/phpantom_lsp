@@ -78,6 +78,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Calls whose conditional return type is `never` end the code path.** A guard clause that calls a function like `wp_die()`, declared `($args is array{exit: false, ...} ? void : never)`, now narrows the code after it when the arguments pick `never`.
 - **Defaults written `\true`, `\false` or `\null` decide conditional return types.** An omitted argument whose parameter defaults to a fully qualified keyword, the way generated stubs write them, now picks its branch of a conditional return type, so WordPress functions such as `wp_insert_post()` and `has_filter()` return what their defaults ask for.
 - **Array-shape conditions compare the keys they name.** A conditional return type like `($args is array{fields: 'ids', ...} ? int[] : WP_Post[])` now checks the array the call passes: a missing required key, or a key holding another value, takes the other branch, and an array whose keys are unknown gets both. WordPress functions such as `get_posts()`, `wp_list_pages()` and `wp_die()` now return what their arguments ask for.
 - **The last of repeated `@phpstan-return` and `@phpstan-param` tags wins.** A docblock that repeats one of these tags now uses the one written last, as PHPStan does, so stubs that refine an older declaration below it, like the WordPress stubs for `get_posts()`, resolve through the newer one.

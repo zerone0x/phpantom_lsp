@@ -41,4 +41,4 @@ $post = Faker::mixed();
 if ($post === null) {
     wp_die();
 }
-assertType('WP_Post', $post); // SKIP: a call whose conditional return type resolves to `never` does not end the code path
+assertType('WP_Post', $post);

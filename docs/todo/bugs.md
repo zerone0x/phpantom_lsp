@@ -141,25 +141,7 @@ No outstanding items.
 
 ## Reachability
 
-### B718. A call whose conditional return type resolves to `never` does not end the code path
-
-**Impact: Medium · Complexity: Low**
-
-```php
-/** @phpstan-return ($args is array{exit: false, ...} ? void : never) */
-function wp_die($message = '', $title = '', $args = array()) { … }
-
-if ($post === null) {
-    wp_die();
-}
-$post;   // want WP_Post, get WP_Post|null
-```
-
-The call itself resolves to `never`, but the check that decides whether
-a statement ends the code path reads only the declared return type, so
-a `never` that comes from a conditional leaves the code after the call
-reachable and nothing narrowed by it. One assertion, PHPantom's own in
-`output-constants.php`.
+No outstanding items.
 
 ## Narrowing
 
