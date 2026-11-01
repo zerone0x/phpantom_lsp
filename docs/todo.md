@@ -114,6 +114,9 @@ ships, remove every row that names it.
 | WP7 | [Return types the WordPress stubs do not declare](todo/wordpress.md#wp7-return-types-the-wordpress-stubs-do-not-declare) | Medium      | Medium      |
 | WP5 | [Hook callback parameter and return types](todo/wordpress.md#wp5-hook-callback-parameter-and-return-types) (depends on WP4) | Medium-High | Medium-High |
 | WP8 | [Sage view composers](todo/wordpress.md#wp8-sage-view-composers) | Medium      | Medium      |
+| WP10 | [Hook docblocks that do not match the call](todo/wordpress.md#wp10-hook-docblocks-that-do-not-match-the-call) (depends on WP5) | Low-Medium  | Medium      |
+| WP12 | [Constants `wp-config.php` defines keep the value of one install](todo/wordpress.md#wp12-constants-wp-configphp-defines-keep-the-value-of-one-install) | Low         | Low-Medium  |
+| WP11 | [`assertWPError()` and `assertNotWPError()` narrow](todo/wordpress.md#wp11-assertwperror-and-assertnotwperror-narrow) | Low         | Low         |
 
 ## Drupal
 

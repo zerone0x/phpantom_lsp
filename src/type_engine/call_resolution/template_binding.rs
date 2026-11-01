@@ -124,6 +124,20 @@ pub(crate) fn bind_template_args(
         };
 
         for arg_text in std::iter::once(arg_text).chain(tail.iter().copied()) {
+            // `...$items` hands a variadic parameter each element of
+            // `$items`, so an element is what the hint is matched against.
+            if param.is_variadic
+                && let Some(spread) = arg_text.trim_start().strip_prefix("...")
+            {
+                let from_walker = || walker_types.and_then(|lookup| lookup(spread));
+                if let Some(bound) = bind_array_element(spread.trim(), ctx, from_walker)
+                    .zip(param_hint)
+                    .and_then(|(element, hint)| unify_template(hint, &element, tpl_name))
+                {
+                    insert_or_union(&mut subs, tpl_name.to_string(), bound);
+                }
+                continue;
+            }
             if let Some(literal) = type_operator_bound_literal(tpl_bound, arg_text) {
                 insert_or_union(&mut subs, tpl_name.to_string(), literal);
                 continue;

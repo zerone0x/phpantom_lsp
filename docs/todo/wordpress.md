@@ -249,3 +249,75 @@ return type.
 `src/virtual_members/laravel/view_data.rs`; Acorn's
 `Roots\Acorn\View\Composer` and its `Composers\Concerns\Extractable`
 for exactly which members count.
+
+---
+
+## WP10. Hook docblocks that do not match the call
+
+**Impact: Low-Medium · Complexity: Medium** (depends on WP5)
+
+```php
+/**
+ * Filters the order total.
+ *
+ * @param float $total The total.
+ */
+$total = apply_filters('acme_order_total', $total, $order);   // 2 arguments, 1 @param
+```
+
+WP5 reads the docblock above `do_action()` and `apply_filters()` as the
+hook's signature, so a docblock that disagrees with the call types every
+callback wrongly. PHPStan's WordPress extension (`HookDocsRule`) reports
+three mismatches: a `@param` count that differs from the arguments after
+the hook name, a `@param` named `$this` or written with invalid syntax,
+and a `@param` type the argument passed does not satisfy. Report the
+same, on the docblock, for the plugin and theme authors who document
+their own hooks. Its rule test (`tests/data/hook-docs.php`) lists the
+cases.
+
+---
+
+## WP11. `assertWPError()` and `assertNotWPError()` narrow
+
+**Impact: Low · Complexity: Low**
+
+```php
+$result = wp_insert_post($data, true);   // int|WP_Error
+$this->assertNotWPError($result);
+$result + 1;                             // still int|WP_Error
+```
+
+WordPress's PHPUnit base class (`WP_UnitTestCase_Base`) asserts a value
+is or is not a `WP_Error`, and the test stubs do not say so. PHPStan's
+WordPress extension narrows through both
+(`AssertWpErrorTypeSpecifyingExtension`, tested in
+`tests/data/assert_wp_error.php` and `assert_not_wp_error.php`). Declare
+them with `@phpstan-assert WP_Error $actual` and
+`@phpstan-assert !WP_Error $actual` in an override stub
+([E7](external-stubs.md#e7-stub-based-framework-patches)) rather than in
+Rust.
+
+---
+
+## WP12. Constants `wp-config.php` defines keep the value of one install
+
+**Impact: Low · Complexity: Low-Medium**
+
+```php
+// wp-config.php
+define('WP_CONTENT_DIR', '/var/www/wp-content');
+
+// a plugin
+if (WP_CONTENT_DIR === '/srv/site/wp-content') { … }   // read as `false`
+```
+
+A constant from a `define()` in `wp-config.php` is typed as the literal
+it holds on this machine, so a comparison against another install's value
+is decided as `false`. The
+value differs between installs, so its type is the general one (`string`,
+`bool`). PHPStan's WordPress extension lists these
+(`dynamicConstantNames` in `extension.neon`: `WP_DEBUG`, `ABSPATH`,
+`WP_CONTENT_DIR`, `WP_PLUGIN_DIR`, `FS_CHMOD_FILE`, …). `WP_DEBUG` and the
+other `bool` constants already widen to `bool`; the string and integer
+ones do not. Widen every constant `wp-config.php` (or
+`wp-config-sample.php`) defines, rather than keeping a list of names.

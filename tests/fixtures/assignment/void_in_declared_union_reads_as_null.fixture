@@ -1,6 +1,6 @@
 // test: `void` in a declared return union reads as null in the variable
 // feature: hover
-// expect: null|string
+// expect: string|null
 // expect_absent: void
 ---
 <?php

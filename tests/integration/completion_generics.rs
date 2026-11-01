@@ -7687,3 +7687,40 @@ function demonstrate(): void { BODY }
         }
     }
 }
+
+/// A spread argument hands a variadic parameter its elements, so the
+/// template binds from the element type rather than the array.
+#[tokio::test]
+async fn variadic_template_parameter_binds_spread_elements() {
+    let backend = create_test_backend();
+    let uri = Uri::parse("file:///variadic-template-spread.php").unwrap();
+    let source = r#"<?php
+class Pen { public function write(): void {} }
+class Brush { public function paint(): void {} }
+/**
+ * @template T
+ * @param T ...$values
+ * @return T
+ */
+function first_of(...$values) {}
+/** @param list<Brush> $brushes */
+function demonstrate(Pen $pen, array $brushes): void { BODY }
+"#;
+    for (expression, expected) in [
+        ("first_of($pen, ...$brushes)->", &["write", "paint"][..]),
+        ("first_of(...$brushes)->", &["paint"][..]),
+    ] {
+        let content = source.replace("BODY", expression);
+        let position = crate::common::position_after(&content, expression);
+        let items =
+            crate::common::complete_at(&backend, &uri, &content, position.line, position.character)
+                .await;
+        for name in expected {
+            assert!(
+                crate::common::method_names(&items).contains(name),
+                "{expression}: missing {name}, got {:?}",
+                crate::common::method_names(&items)
+            );
+        }
+    }
+}
