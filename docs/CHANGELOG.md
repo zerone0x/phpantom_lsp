@@ -78,6 +78,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Identity checks that can never hold are `false`.** `$protocol === 'HTTP/1'` is `false`, and `!==` is `true`, when `$protocol` can only be values other than `'HTTP/1'`, such as `'HTTP/1.0'|'HTTP/1.1'`, so a typo in the compared string no longer hides behind a `bool`.
 - **Variadic template parameters take every argument.** A function declaring `@param T ...$values` with `@return T` now returns the union of everything passed to it, not just the first argument's type.
 - **Static calls with a conditional return type, passed as an argument.** `wrap(Factory::make($x))` now sees the branch of `make()`'s conditional `@return` that `$x` selects, instead of its native return type.
 - **A `@var` above a reassignment replaces what calls on the old value returned.** After `/** @var Box<string> $box */ $box = make();`, a call on `$box` resolves with the new type even when the same call was passed as an argument before the reassignment.

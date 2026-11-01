@@ -25,20 +25,7 @@ No outstanding items.
 
 ## Type comparison
 
-### B715. `===` between literals that cannot be equal is not `false`
-
-**Impact: Low · Complexity: Low**
-
-```php
-/** @return 'HTTP/1.0'|'HTTP/1.1'|'HTTP/2' */
-function wp_get_server_protocol() { … }
-
-wp_get_server_protocol() === 'HTTP/1';   // want false, get bool
-```
-
-No member of the left side's union equals the right side's literal, so
-the comparison is always `false`, and PHPStan types it so. We give
-`bool`, which hides a typo in the compared string.
+No outstanding items.
 
 ## Conditional return types
 
