@@ -35,7 +35,7 @@ use function PHPStan\Testing\assertType;
 // Default value of true
 assertType('null', comment_class()); // SKIP: a default written `\true`, `\false` or `\null` is not read
 assertType('null', edit_term_link()); // SKIP: a conditional type inside a union, an intersection or a generic argument is not evaluated
-assertType('null', get_calendar()); // SKIP: an array-shape condition matches any array
+assertType('null', get_calendar()); // SKIP: `void` from a conditional return type is not read as `null`
 assertType('null', next_posts()); // SKIP: a default written `\true`, `\false` or `\null` is not read
 assertType('null', post_type_archive_title()); // SKIP: a default written `\true`, `\false` or `\null` is not read
 assertType('null', previous_posts()); // SKIP: a default written `\true`, `\false` or `\null` is not read
@@ -55,7 +55,7 @@ assertType('null', wp_title()); // SKIP: a default written `\true`, `\false` or 
 $value = true;
 assertType('null', comment_class('', null, null, $value)); // SKIP: `void` from a conditional return type is not read as `null`
 assertType('null', edit_term_link('', '', '', null, $value)); // SKIP: a conditional type inside a union, an intersection or a generic argument is not evaluated
-assertType('null', get_calendar(['initial' => true, 'display' => $value])); // SKIP: an array-shape condition matches any array
+assertType('null', get_calendar(['initial' => true, 'display' => $value])); // SKIP: `void` from a conditional return type is not read as `null`
 assertType('null', next_posts(0, $value)); // SKIP: `void` from a conditional return type is not read as `null`
 assertType('null', post_type_archive_title('', $value)); // SKIP: `void` from a conditional return type is not read as `null`
 assertType('null', previous_posts($value)); // SKIP: `void` from a conditional return type is not read as `null`
@@ -95,7 +95,7 @@ assertType('string', wp_title('', $value));
 $value = Faker::bool();
 assertType('string|null', comment_class('', null, null, $value)); // SKIP: `void` from a conditional return type is not read as `null`
 assertType('string|null', edit_term_link('', '', '', null, $value)); // SKIP: a conditional type inside a union, an intersection or a generic argument is not evaluated
-assertType('string|null', get_calendar(['initial' => true, 'display' => $value])); // SKIP: an array-shape condition matches any array
+assertType('string|null', get_calendar(['initial' => true, 'display' => $value])); // SKIP: `void` from a conditional return type is not read as `null`
 assertType('string|null', next_posts(0, $value)); // SKIP: `void` from a conditional return type is not read as `null`
 assertType('string|null', post_type_archive_title('', $value)); // SKIP: `void` from a conditional return type is not read as `null`
 assertType('string|null', previous_posts($value)); // SKIP: `void` from a conditional return type is not read as `null`

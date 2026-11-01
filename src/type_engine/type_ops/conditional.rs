@@ -258,6 +258,9 @@ fn type_condition_result(
             None
         };
     }
+    if condition.shape_parts().is_some() && type_category(arg_ty) == Some("array") {
+        return shape_condition_result(arg_ty, condition, class_loader);
+    }
     match (type_category(arg_ty), condition_category(condition)) {
         // `is non-empty-array` asks about the entries, which every array
         // type shares the category of: only a type that promises an entry
@@ -276,6 +279,117 @@ fn type_condition_result(
         // class hierarchy decides (`$id is Arrayable`).
         (Some(arg_cat), None) => class_condition_result(arg_ty, arg_cat, condition, class_loader),
         _ => None,
+    }
+}
+
+/// Decide an `is array{…}` condition against an array argument, entry by
+/// entry.
+///
+/// A key the condition requires that a sealed argument lacks, or holds with
+/// a value outside the condition's, refutes it, and so does a key a sealed
+/// condition does not allow. A key the argument may or may not hold (an
+/// optional entry, or one its unsealed tail might supply) leaves the check
+/// open, as does an array whose keys are not known one by one.
+fn shape_condition_result(
+    arg_ty: &PhpType,
+    condition: &PhpType,
+    class_loader: &ResolvedClassLoader<'_>,
+) -> Option<bool> {
+    let cond = condition.shape_parts()?;
+    let tail_admits_anything = |tail: Option<(&PhpType, &PhpType)>| {
+        tail.is_some_and(|(key, value)| key.is_array_key() && value.is_mixed())
+    };
+    let Some(arg) = arg_ty.shape_parts() else {
+        // Only a condition that names nothing holds for any array at all.
+        return (cond.entries.is_empty() && !cond.is_list && tail_admits_anything(cond.tail))
+            .then_some(true);
+    };
+    let mut all_hold = true;
+    let mut refuted = false;
+    let mut note = |result: Option<bool>| match result {
+        Some(true) => {}
+        Some(false) => refuted = true,
+        None => all_hold = false,
+    };
+
+    if cond.is_list && !arg.is_list {
+        note(None);
+    }
+    for entry in cond.entries {
+        let Some(key) = entry.key.as_deref() else {
+            note(None);
+            continue;
+        };
+        let Some(arg_entry) = arg.entries.iter().find(|e| e.key.as_deref() == Some(key)) else {
+            // A sealed argument lacks the key outright; an unsealed one may
+            // still hold it among the entries its tail allows.
+            note(if arg.tail.is_some() {
+                None
+            } else {
+                Some(entry.optional)
+            });
+            continue;
+        };
+        let value = if entry.value_type.is_mixed() {
+            Some(true)
+        } else {
+            type_condition_result(&arg_entry.value_type, &entry.value_type, class_loader)
+        };
+        note(match (value, arg_entry.optional, entry.optional) {
+            // Absent, the key satisfies an optional entry of the condition
+            // and fails a required one, whatever the value would have been.
+            (Some(false), true, true) | (Some(true), true, false) => None,
+            (value, _, _) => value,
+        });
+    }
+    for arg_entry in arg.entries {
+        let Some(key) = arg_entry.key.as_deref() else {
+            note(None);
+            continue;
+        };
+        if cond.entries.iter().any(|e| e.key.as_deref() == Some(key)) {
+            continue;
+        }
+        let allowed = match cond.tail {
+            None => Some(false),
+            Some(tail) if tail_admits_anything(Some(tail)) => Some(true),
+            Some((tail_key, tail_value)) => {
+                let key_ok = if tail_key.is_array_key() {
+                    Some(true)
+                } else {
+                    type_condition_result(
+                        &crate::php_type::shape_key_type(key),
+                        tail_key,
+                        class_loader,
+                    )
+                };
+                let value_ok = if tail_value.is_mixed() {
+                    Some(true)
+                } else {
+                    type_condition_result(&arg_entry.value_type, tail_value, class_loader)
+                };
+                match (key_ok, value_ok) {
+                    (Some(false), _) | (_, Some(false)) => Some(false),
+                    (Some(true), Some(true)) => Some(true),
+                    _ => None,
+                }
+            }
+        };
+        // An entry the argument may leave out is no proof against the
+        // condition.
+        note(match allowed {
+            Some(false) if arg_entry.optional => None,
+            allowed => allowed,
+        });
+    }
+    if arg.tail.is_some() && !tail_admits_anything(cond.tail) {
+        note(None);
+    }
+
+    if refuted {
+        Some(false)
+    } else {
+        all_hold.then_some(true)
     }
 }
 
@@ -415,6 +529,13 @@ fn class_condition_result(
 /// Union two optional branch types produced by an undecidable conditional,
 /// dropping duplicates and any uninformative branch.
 fn union_branch_types(a: Option<PhpType>, b: Option<PhpType>) -> Option<PhpType> {
+    // `never` adds nothing to a union, so beside a branch that says nothing
+    // (`void`) it says nothing either: the call may still return.
+    if let (None, Some(only)) | (Some(only), None) = (&a, &b)
+        && only.is_never()
+    {
+        return None;
+    }
     let mut members: Vec<PhpType> = Vec::new();
     let mut push = |ty: PhpType| match ty.kind() {
         TypeKind::Union(inner) => {

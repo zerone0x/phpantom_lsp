@@ -19,9 +19,9 @@ assertType('bool|string', Faker::wpQuery()->query_vars_hash);
 assertType('null', Faker::wpQuery()->init_query_flags());
 
 // WP_Query::query(): default fields value.
-assertType('array<int, WP_Post>', Faker::wpQuery()->query([])); // SKIP: an array-shape condition matches any array
-assertType('array<int, WP_Post>', Faker::wpQuery()->query(['fields' => ''])); // SKIP: an array-shape condition matches any array
-assertType('array<int, WP_Post>', Faker::wpQuery()->query(['fields' => 'all'])); // SKIP: an array-shape condition matches any array
+assertType('array<int, WP_Post>', Faker::wpQuery()->query([]));
+assertType('array<int, WP_Post>', Faker::wpQuery()->query(['fields' => '']));
+assertType('array<int, WP_Post>', Faker::wpQuery()->query(['fields' => 'all']));
 
 // WP_Query::query(): requesting IDs.
 assertType('array<int, int>', Faker::wpQuery()->query(['fields' => 'ids']));
@@ -31,10 +31,10 @@ assertType('array<int, int>', Faker::wpQuery()->query(['post_type' => 'page', 'f
 assertType('array<int, int>', Faker::wpQuery()->query(['fields' => 'id=>parent']));
 
 // WP_Query::query(): unrecognized fields values fall back to post objects.
-assertType('array<int, WP_Post>', Faker::wpQuery()->query(['fields' => 'foo'])); // SKIP: an array-shape condition matches any array
+assertType('array<int, WP_Post>', Faker::wpQuery()->query(['fields' => 'foo']));
 
 // WP_Query::query(): unknown fields value.
-assertType('array<int, int|WP_Post>', Faker::wpQuery()->query(['fields' => Faker::string()])); // SKIP: an array-shape condition matches any array
+assertType('array<int, int>|array<int, WP_Post>', Faker::wpQuery()->query(['fields' => Faker::string()])); // PHPantom keeps the array types apart where PHPStan merges them
 
 // WP_Query::query(): a URL query string is parsed at runtime, so the fields
 // value is not visible to PHPStan and every result shape stays possible.

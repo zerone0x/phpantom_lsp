@@ -19,10 +19,10 @@ use function PHPStan\Testing\assertType;
 assertType('null', wp_list_pages()); // SKIP: `void` from a conditional return type is not read as `null`
 
 // Explicit value of true
-assertType('null', wp_list_pages(['echo' => true, 'key' => 'value'])); // SKIP: an array-shape condition matches any array
+assertType('null', wp_list_pages(['echo' => true, 'key' => 'value'])); // SKIP: `void` from a conditional return type is not read as `null`
 
 // Explicit value of false
 assertType('string', wp_list_pages(['echo' => false, 'key' => 'value']));
 
 // Unknown value
-assertType('string|null', wp_list_pages(['echo' => Faker::bool(), 'key' => 'value'])); // SKIP: an array-shape condition matches any array
+assertType('string|null', wp_list_pages(['echo' => Faker::bool(), 'key' => 'value'])); // SKIP: `void` from a conditional return type is not read as `null`

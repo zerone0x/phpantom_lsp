@@ -865,3 +865,152 @@ fn template_subject_is_decided_through_its_parameter_binding() {
     assert_eq!(resolve("$id").as_deref(), Some("Sync"));
     assert_eq!(resolve("$id, false").as_deref(), Some("Async"));
 }
+
+/// Decide `$args is <condition>` for an argument of type `arg`.
+fn shape_condition(arg: &str, condition: &str) -> Option<bool> {
+    let loader: &ResolvedClassLoader<'_> = &|_| None;
+    type_condition_result(&PhpType::parse(arg), &PhpType::parse(condition), loader)
+}
+
+/// An array-shape condition is decided key by key: a key the argument holds
+/// with another value, or lacks while the condition requires it, refutes it.
+#[test]
+fn array_shape_condition_compares_the_keys_it_names() {
+    let cond = "array{fields: 'count', ...}";
+    assert_eq!(shape_condition("array{fields: 'count'}", cond), Some(true));
+    assert_eq!(
+        shape_condition("array{fields: 'count', number: 5}", cond),
+        Some(true)
+    );
+    assert_eq!(shape_condition("array{fields: 'names'}", cond), Some(false));
+    assert_eq!(shape_condition("array{number: 5}", cond), Some(false));
+    assert_eq!(shape_condition("array{}", cond), Some(false));
+    assert_eq!(shape_condition("string", cond), Some(false));
+}
+
+/// A key the argument may lack, a value it does not pin down, or an array
+/// whose keys are not known one by one leaves the condition open.
+#[test]
+fn array_shape_condition_stays_open_without_proof() {
+    let cond = "array{fields: 'count', ...}";
+    assert_eq!(shape_condition("array{fields?: 'count'}", cond), None);
+    assert_eq!(shape_condition("array{fields: string}", cond), None);
+    assert_eq!(shape_condition("array{number: 5, ...}", cond), None);
+    assert_eq!(shape_condition("array<string, mixed>", cond), None);
+    assert_eq!(shape_condition("array", cond), None);
+    // A value outside the condition's refutes it whether or not the key
+    // turns out to be there.
+    assert_eq!(
+        shape_condition("array{fields?: 'names'}", cond),
+        Some(false)
+    );
+}
+
+/// A condition's optional key only constrains the value when the key is
+/// there, and a sealed condition admits no key it does not list.
+#[test]
+fn array_shape_condition_optional_and_sealed_keys() {
+    assert_eq!(
+        shape_condition("array{}", "array{echo?: false, ...}"),
+        Some(true)
+    );
+    assert_eq!(
+        shape_condition("array{echo: true}", "array{echo?: false, ...}"),
+        Some(false)
+    );
+    assert_eq!(
+        shape_condition("array{echo?: true}", "array{echo?: false, ...}"),
+        None
+    );
+    assert_eq!(
+        shape_condition("array{exit: false, code: 1}", "array{exit: false}"),
+        Some(false)
+    );
+    assert_eq!(
+        shape_condition("array{exit: false, code?: 1}", "array{exit: false}"),
+        None
+    );
+    assert_eq!(
+        shape_condition("array{echo: true}", "array{echo: false|0, ...}"),
+        Some(false)
+    );
+    assert_eq!(
+        shape_condition("array{echo: 0}", "array{echo: false|0, ...}"),
+        Some(true)
+    );
+}
+
+/// An array literal argument is judged by the keys it holds, and an omitted
+/// one by its declared default.
+#[test]
+fn array_shape_condition_from_argument_text() {
+    let resolve = |text_args: &str, arg_ty: Option<&str>| {
+        let cond = PhpType::parse("($args is array{fields: 'count', ...} ? int : string)");
+        let params = [param_with_default("$args", "''")];
+        let loader: &ResolvedClassLoader<'_> = &|_| None;
+        let resolver = |_: &str| arg_ty.map(PhpType::parse);
+        let tpl = TemplateContext {
+            defaults: None,
+            params: &[],
+            bindings: &[],
+            arg_type_resolver: Some(&resolver),
+            this_type: None,
+        };
+        resolve_conditional_with_text_args_and_defaults(
+            &cond,
+            &params,
+            text_args,
+            None,
+            ConditionalClassContext::default(),
+            loader,
+            &tpl,
+        )
+        .map(|t| t.to_string())
+    };
+    assert_eq!(
+        resolve("['fields' => 'names']", Some("array{fields: 'names'}")).as_deref(),
+        Some("string")
+    );
+    assert_eq!(
+        resolve("['fields' => 'count']", Some("array{fields: 'count'}")).as_deref(),
+        Some("int")
+    );
+    assert_eq!(resolve("[]", None).as_deref(), Some("string"));
+    assert_eq!(resolve("array()", None).as_deref(), Some("string"));
+    assert_eq!(resolve("", None).as_deref(), Some("string"));
+    assert_eq!(
+        resolve("$args", Some("array")).as_deref(),
+        Some("int|string")
+    );
+}
+
+/// An undecided call between a `void` branch and a `never` branch may still
+/// return, so it is not read as `never`.
+#[test]
+fn undecided_void_or_never_is_not_never() {
+    let cond = PhpType::parse("($args is array{exit: false, ...} ? void : never)");
+    let params = [param_with_default("$args", "array()")];
+    let loader: &ResolvedClassLoader<'_> = &|_| None;
+    let resolver = |_: &str| Some(PhpType::parse("array"));
+    let tpl = TemplateContext {
+        defaults: None,
+        params: &[],
+        bindings: &[],
+        arg_type_resolver: Some(&resolver),
+        this_type: None,
+    };
+    let resolve = |text_args: &str| {
+        resolve_conditional_with_text_args_and_defaults(
+            &cond,
+            &params,
+            text_args,
+            None,
+            ConditionalClassContext::default(),
+            loader,
+            &tpl,
+        )
+        .map(|t| t.to_string())
+    };
+    assert_eq!(resolve("$args"), None);
+    assert_eq!(resolve("").as_deref(), Some("never"));
+}

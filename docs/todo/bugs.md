@@ -76,34 +76,6 @@ stays in the type unevaluated, and hover shows its source text. This is
 `|\WP_Error` or `|false` to an argument-dependent result. 138
 assertions.
 
-### B699. An array-shape condition matches any array
-
-**Impact: Medium-High · Complexity: Low-Medium**
-
-```php
-/** @phpstan-return ($args is array{fields: 'count', ...} ? int : string) */
-function get_categories($args = '') { … }
-
-get_categories(['fields' => 'names']);   // want string, get int
-get_categories([]);                      // want string, get int
-```
-
-`$args is array{fields: 'count', ...}` is taken as true for every array,
-whatever keys it has and whatever they hold, and for an omitted
-argument whose default is `''`. A key the condition requires and the
-argument lacks, or holds with a value outside the condition's, must make
-the check false; an optional key or an argument whose keys are unknown
-keeps it undecided.
-
-Every WordPress function that takes an `$args` array decides its result
-this way: `get_posts()` and `WP_Query::query()` without `fields` iterate
-as `int` (22 of WordPress core's `scalar_member_access` reports),
-`wp_list_pages(['echo' => false])` and the other echoing functions take
-the first branch whatever `echo` says, and `wp_die()` with its default
-arguments matches `array{exit: false}` and is read as returning, so code
-after it stays reachable. 107 assertions, and one of PHPantom's own in
-`output-constants.php`.
-
 ### B708. A condition over a refined type is misjudged
 
 **Impact: Medium · Complexity: Medium**
@@ -134,8 +106,8 @@ gets these wrong:
 - `resource` and `object`, which are not ruled out of `string`;
 - the key type of `array<K, V>`, which is ignored.
 
-83 assertions, from `absint()`, `has_shortcode()`, `size_format()`,
-`validate_file()`, `WP_Dependencies::query()` and others.
+86 assertions, from `absint()`, `has_shortcode()`, `size_format()`,
+`validate_file()`, `WP_Dependencies::query()`, `paginate_links()` and others.
 
 ### B709. `void` from a conditional return type is not read as `null`
 
@@ -153,7 +125,7 @@ A function declared `@return void` gives `null` to a variable assigned
 from it. When `void` comes from a branch of a conditional instead, the
 result has no type at all, a union with it drops it, and a union written
 in the stub (`string|void`) keeps `void`. The value of a call is `null`
-in all three. 54 assertions.
+in all three. 89 assertions.
 
 ### B710. A conditional over a method template ignores its bound and does not narrow it
 
@@ -189,7 +161,25 @@ No outstanding items.
 
 ## Reachability
 
-No outstanding items.
+### B718. A call whose conditional return type resolves to `never` does not end the code path
+
+**Impact: Medium · Complexity: Low**
+
+```php
+/** @phpstan-return ($args is array{exit: false, ...} ? void : never) */
+function wp_die($message = '', $title = '', $args = array()) { … }
+
+if ($post === null) {
+    wp_die();
+}
+$post;   // want WP_Post, get WP_Post|null
+```
+
+The call itself resolves to `never`, but the check that decides whether
+a statement ends the code path reads only the declared return type, so
+a `never` that comes from a conditional leaves the code after the call
+reachable and nothing narrowed by it. One assertion, PHPantom's own in
+`output-constants.php`.
 
 ## Narrowing
 

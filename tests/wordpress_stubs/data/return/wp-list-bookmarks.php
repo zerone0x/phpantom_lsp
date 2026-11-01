@@ -19,13 +19,13 @@ use function PHPStan\Testing\assertType;
 assertType('null', wp_list_bookmarks()); // SKIP: `void` from a conditional return type is not read as `null`
 
 // Explicit value of true|1
-assertType('null', wp_list_bookmarks(['echo' => true, 'key' => 'value'])); // SKIP: an array-shape condition matches any array
-assertType('null', wp_list_bookmarks(['echo' => 1, 'key' => 'value'])); // SKIP: an array-shape condition matches any array
+assertType('null', wp_list_bookmarks(['echo' => true, 'key' => 'value'])); // SKIP: `void` from a conditional return type is not read as `null`
+assertType('null', wp_list_bookmarks(['echo' => 1, 'key' => 'value'])); // SKIP: `void` from a conditional return type is not read as `null`
 
 // Explicit value of false|0
 assertType('string', wp_list_bookmarks(['echo' => false, 'key' => 'value']));
 assertType('string', wp_list_bookmarks(['echo' => 0, 'key' => 'value']));
 
 // Unknown value
-assertType('string|null', wp_list_bookmarks(['echo' => Faker::bool(), 'key' => 'value'])); // SKIP: an array-shape condition matches any array
-assertType('string|null', wp_list_bookmarks(['echo' => Faker::int(), 'key' => 'value'])); // SKIP: an array-shape condition matches any array
+assertType('string|null', wp_list_bookmarks(['echo' => Faker::bool(), 'key' => 'value'])); // SKIP: `void` from a conditional return type is not read as `null`
+assertType('string|null', wp_list_bookmarks(['echo' => Faker::int(), 'key' => 'value'])); // SKIP: `void` from a conditional return type is not read as `null`

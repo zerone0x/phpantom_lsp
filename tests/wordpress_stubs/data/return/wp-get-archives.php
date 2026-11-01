@@ -19,8 +19,8 @@ use function PHPStan\Testing\assertType;
 assertType('null', wp_get_archives()); // SKIP: `void` from a conditional return type is not read as `null`
 
 // Explicit value of true|1
-assertType('null', wp_get_archives(['echo' => true, 'key' => 'value'])); // SKIP: an array-shape condition matches any array
-assertType('null', wp_get_archives(['echo' => 1, 'key' => 'value'])); // SKIP: an array-shape condition matches any array
+assertType('null', wp_get_archives(['echo' => true, 'key' => 'value'])); // SKIP: `void` from a conditional return type is not read as `null`
+assertType('null', wp_get_archives(['echo' => 1, 'key' => 'value'])); // SKIP: `void` from a conditional return type is not read as `null`
 
 // Explicit value of false|0
 assertType('string|null', wp_get_archives(['echo' => false, 'key' => 'value'])); // SKIP: `void` from a conditional return type is not read as `null`

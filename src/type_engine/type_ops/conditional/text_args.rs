@@ -388,10 +388,15 @@ impl TextArgs<'_> {
             }
             .resolve(branch)
         };
-        union_branch_types(
-            narrowed_branch(true, &cond.then_type),
-            narrowed_branch(false, &cond.else_type),
-        )
+        let reaches = |takes_then: bool| verdicts.iter().any(|v| *v != Some(!takes_then));
+        match (reaches(true), reaches(false)) {
+            (true, false) => narrowed_branch(true, &cond.then_type),
+            (false, true) => narrowed_branch(false, &cond.else_type),
+            _ => union_branch_types(
+                narrowed_branch(true, &cond.then_type),
+                narrowed_branch(false, &cond.else_type),
+            ),
+        }
     }
 
     /// Decide a class-constant condition (e.g. `$mode is

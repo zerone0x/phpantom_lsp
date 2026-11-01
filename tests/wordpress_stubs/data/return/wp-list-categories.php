@@ -19,13 +19,13 @@ use function PHPStan\Testing\assertType;
 assertType('false|null', wp_list_categories()); // SKIP: `void` from a conditional return type is not read as `null`
 
 // Explicit value of true|1
-assertType('false|null', wp_list_categories(['echo' => true, 'key' => 'value'])); // SKIP: an array-shape condition matches any array
-assertType('false|null', wp_list_categories(['echo' => 1, 'key' => 'value'])); // SKIP: an array-shape condition matches any array
+assertType('false|null', wp_list_categories(['echo' => true, 'key' => 'value'])); // SKIP: `void` from a conditional return type is not read as `null`
+assertType('false|null', wp_list_categories(['echo' => 1, 'key' => 'value'])); // SKIP: `void` from a conditional return type is not read as `null`
 
 // Explicit value of false|0
 assertType('string|false', wp_list_categories(['echo' => false, 'key' => 'value']));
 assertType('string|false', wp_list_categories(['echo' => 0, 'key' => 'value']));
 
 // Unknown value
-assertType('string|false|null', wp_list_categories(['echo' => Faker::bool(), 'key' => 'value'])); // SKIP: an array-shape condition matches any array
-assertType('string|false|null', wp_list_categories(['echo' => Faker::int(), 'key' => 'value'])); // SKIP: an array-shape condition matches any array
+assertType('string|false|null', wp_list_categories(['echo' => Faker::bool(), 'key' => 'value'])); // SKIP: `void` from a conditional return type is not read as `null`
+assertType('string|false|null', wp_list_categories(['echo' => Faker::int(), 'key' => 'value'])); // SKIP: `void` from a conditional return type is not read as `null`

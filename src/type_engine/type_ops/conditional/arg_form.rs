@@ -133,8 +133,36 @@ pub(super) fn condition_result_from_text(condition: &PhpType, arg_text: &str) ->
                 _ => None,
             },
         },
+        // An array literal's syntax says nothing about the keys an
+        // `array{…}` condition asks for, except when it holds none.
+        _ if condition.shape_parts().is_some()
+            && classify_arg_form(arg_text) == ArgForm::ArrayLit =>
+        {
+            is_empty_array_literal(arg_text)
+                .then(|| {
+                    super::shape_condition_result(
+                        &PhpType::array_shape(Vec::new()),
+                        condition,
+                        &|_| None,
+                    )
+                })
+                .flatten()
+        }
         _ => condition_result_from_form(condition, classify_arg_form(arg_text)),
     }
+}
+
+/// Whether `arg_text` is `[]` or `array()`.
+fn is_empty_array_literal(arg_text: &str) -> bool {
+    let t = arg_text.trim();
+    let inner = if let Some(rest) = t.strip_prefix('[') {
+        rest.strip_suffix(']')
+    } else {
+        t.get(..6)
+            .filter(|head| head.eq_ignore_ascii_case("array("))
+            .and_then(|_| t[6..].strip_suffix(')'))
+    };
+    inner.is_some_and(|inner| inner.trim().is_empty())
 }
 
 /// Decide a value condition (`$flags is 15`) against an argument's *resolved*
