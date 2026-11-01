@@ -89,24 +89,6 @@ gets these wrong:
 86 assertions, from `absint()`, `has_shortcode()`, `size_format()`,
 `validate_file()`, `WP_Dependencies::query()`, `paginate_links()` and others.
 
-### B709. `void` from a conditional return type is not read as `null`
-
-**Impact: Medium · Complexity: Low**
-
-```php
-/** @phpstan-return ($display is true ? void : string) */
-function the_title($before = '', $after = '', $display = true) { … }
-
-$title = the_title('', '', true);    // want null, get no type
-$title = the_title('', '', $echo);   // want string|null, get string
-```
-
-A function declared `@return void` gives `null` to a variable assigned
-from it. When `void` comes from a branch of a conditional instead, the
-result has no type at all, a union with it drops it, and a union written
-in the stub (`string|void`) keeps `void`. The value of a call is `null`
-in all three. 104 assertions.
-
 ### B710. A conditional over a method template ignores its bound and does not narrow it
 
 **Impact: Medium · Complexity: Medium**

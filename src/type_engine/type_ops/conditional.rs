@@ -222,14 +222,23 @@ fn type_condition_result(
             };
         }
     }
-    // Condition union (`array|string`): satisfied when any member matches,
-    // refuted only when every member is refuted.
-    if let TypeKind::Union(members) = condition.kind() {
-        return combine_union_results(
-            members
-                .iter()
-                .map(|member| type_condition_result(arg_ty, member, class_loader)),
-        );
+    // Argument union: satisfied only when every member matches, refuted only
+    // when every member is refuted, otherwise indeterminate. It is split
+    // before the condition, as a nullable one is, so `''|null` is judged
+    // against all of `null|''` rather than failing `null` and `''` each as a
+    // whole.
+    if let TypeKind::Union(members) = arg_ty.kind() {
+        let results: Vec<Option<bool>> = members
+            .iter()
+            .map(|m| type_condition_result(m, condition, class_loader))
+            .collect();
+        return if results.iter().all(|r| *r == Some(true)) {
+            Some(true)
+        } else if results.iter().all(|r| *r == Some(false)) {
+            Some(false)
+        } else {
+            None
+        };
     }
     // A nullable argument is the union of its inner type and `null`, and has
     // to be judged as one: read whole, `?string` would answer an `is null`
@@ -243,20 +252,14 @@ fn type_condition_result(
             _ => None,
         };
     }
-    // Argument union: satisfied only when every member matches, refuted only
-    // when every member is refuted, otherwise indeterminate.
-    if let TypeKind::Union(members) = arg_ty.kind() {
-        let results: Vec<Option<bool>> = members
-            .iter()
-            .map(|m| type_condition_result(m, condition, class_loader))
-            .collect();
-        return if results.iter().all(|r| *r == Some(true)) {
-            Some(true)
-        } else if results.iter().all(|r| *r == Some(false)) {
-            Some(false)
-        } else {
-            None
-        };
+    // Condition union (`array|string`): satisfied when any member matches,
+    // refuted only when every member is refuted.
+    if let TypeKind::Union(members) = condition.kind() {
+        return combine_union_results(
+            members
+                .iter()
+                .map(|member| type_condition_result(arg_ty, member, class_loader)),
+        );
     }
     if condition.shape_parts().is_some() && type_category(arg_ty) == Some("array") {
         return shape_condition_result(arg_ty, condition, class_loader);
@@ -527,14 +530,15 @@ fn class_condition_result(
 }
 
 /// Union two optional branch types produced by an undecidable conditional,
-/// dropping duplicates and any uninformative branch.
+/// dropping duplicates and any branch that could not be resolved.
 fn union_branch_types(a: Option<PhpType>, b: Option<PhpType>) -> Option<PhpType> {
     // `never` adds nothing to a union, so beside a branch that says nothing
-    // (`void`) it says nothing either: the call may still return.
-    if let (None, Some(only)) | (Some(only), None) = (&a, &b)
-        && only.is_never()
-    {
-        return None;
+    // it says nothing either: the call may still return.
+    match (&a, &b) {
+        (None, Some(only)) | (Some(only), None) if only.is_never() => return None,
+        (Some(never), Some(_)) if never.is_never() => return b,
+        (Some(_), Some(never)) if never.is_never() => return a,
+        _ => {}
     }
     let mut members: Vec<PhpType> = Vec::new();
     let mut push = |ty: PhpType| match ty.kind() {

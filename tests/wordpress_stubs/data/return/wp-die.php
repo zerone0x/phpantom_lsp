@@ -14,11 +14,11 @@ assertType('never', wp_die('', ''));
 
 // explicit exit
 assertType('never', wp_die('', '', ['exit' => true]));
-assertType('null', wp_die('', '', ['exit' => false])); // SKIP: `void` from a conditional return type is not read as `null`
+assertType('null', wp_die('', '', ['exit' => false]));
 
 // unknown
-assertType('null', wp_die('', '', ['exit' => Faker::bool()])); // SKIP: `void` from a conditional return type is not read as `null`
-assertType('null', wp_die('', '', Faker::array())); // SKIP: `void` from a conditional return type is not read as `null`
+assertType('null', wp_die('', '', ['exit' => Faker::bool()]));
+assertType('null', wp_die('', '', Faker::array()));
 
 // non-array $args parameter ($args not string type per @phpstan-param)
 assertType('never', wp_die('', '', Faker::int()));

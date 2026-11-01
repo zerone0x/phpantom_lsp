@@ -87,13 +87,6 @@ impl TextArgs<'_> {
             ..
         } = *self;
         let TypeKind::Conditional(cond) = conditional.kind() else {
-            // `void` carries no information beyond the method's declared
-            // return type, so the caller falls back to that. `never` is
-            // different: it means the call provably does not return, which
-            // is informative and must propagate rather than being dropped.
-            if conditional.is_void() {
-                return None;
-            }
             return Some(conditional.clone());
         };
         let target = cond.param.as_str();

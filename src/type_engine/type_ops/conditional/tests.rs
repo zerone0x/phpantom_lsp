@@ -1034,7 +1034,7 @@ fn array_shape_condition_from_argument_text() {
 }
 
 /// An undecided call between a `void` branch and a `never` branch may still
-/// return, so it is not read as `never`.
+/// return, so it is read as `void` rather than `never`.
 #[test]
 fn undecided_void_or_never_is_not_never() {
     let cond = PhpType::parse("($args is array{exit: false, ...} ? void : never)");
@@ -1060,6 +1060,57 @@ fn undecided_void_or_never_is_not_never() {
         )
         .map(|t| t.to_string())
     };
-    assert_eq!(resolve("$args"), None);
+    assert_eq!(resolve("$args").as_deref(), Some("void"));
     assert_eq!(resolve("").as_deref(), Some("never"));
+}
+
+/// A `void` branch is the call's type like any other, decided or beside the
+/// other branch when the condition is open.
+#[test]
+fn void_branch_is_kept() {
+    let cond = PhpType::parse("($display is true ? void : string)");
+    let params = [param_with_default("$display", "true")];
+    let loader: &ResolvedClassLoader<'_> = &|_| None;
+    let resolver = |text: &str| (text == "$echo").then(|| PhpType::parse("bool"));
+    let tpl = TemplateContext {
+        defaults: None,
+        params: &[],
+        bindings: &[],
+        arg_type_resolver: Some(&resolver),
+        this_type: None,
+    };
+    let resolve = |text_args: &str| {
+        resolve_conditional_with_text_args_and_defaults(
+            &cond,
+            &params,
+            text_args,
+            None,
+            ConditionalClassContext::default(),
+            loader,
+            &tpl,
+        )
+        .map(|t| t.to_string())
+    };
+    assert_eq!(resolve("").as_deref(), Some("void"));
+    assert_eq!(resolve("true").as_deref(), Some("void"));
+    assert_eq!(resolve("false").as_deref(), Some("string"));
+    assert_eq!(resolve("$echo").as_deref(), Some("void|string"));
+    assert_eq!(
+        resolve_conditional_without_args(&cond, &params).map(|t| t.to_string()),
+        Some("void".to_string())
+    );
+}
+
+/// A union argument is judged member by member against the whole of a union
+/// condition, so each member may satisfy a different one of its members.
+#[test]
+fn union_argument_against_union_condition() {
+    assert_eq!(shape_condition("''|null", "null|''"), Some(true));
+    assert_eq!(shape_condition("?string", "string|null"), Some(true));
+    assert_eq!(shape_condition("int|null", "string|null"), None);
+    assert_eq!(shape_condition("int|float", "string|null"), Some(false));
+    assert_eq!(
+        shape_condition("array{id: ''|null}", "array{id: null|'', ...}"),
+        Some(true)
+    );
 }
