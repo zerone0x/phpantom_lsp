@@ -35,28 +35,6 @@ gets. The WordPress stubs use them on some 150 functions, and their own
 type tests are ported in `tests/wordpress_stubs/`: each entry below names how many of
 those assertions it accounts for.
 
-### B705. The first of several `@phpstan-return` tags is read, not the last
-
-**Impact: High · Complexity: Low**
-
-```php
-/**
- * @return WP_Post[]|int[]
- * @phpstan-return ( $args is array{ fields: 'ids', ... } ? int[] : WP_Post[] )
- * @phpstan-return ($args is array{fields: 'id=>parent'|'ids', ...} ? array<int, int> : array<int, \WP_Post>)
- */
-function get_posts($args = null) { … }
-```
-
-PHPStan reads the last `@phpstan-return` of a docblock, so a stub that
-adds a more precise tag below an older one gets the new one. We read the
-first. `php-stubs/wordpress-stubs` has fifteen functions with two tags,
-`get_posts()`, `wp_insert_post()`, `term_exists()`, `get_post_types()`,
-`sanitize_post_field()`, `wp_upload_dir()` and `WP_Query::query()` among
-them, so every one resolves through its outdated declaration. The same
-holds for repeated `@phpstan-param` tags (`get_categories()`). 135
-assertions.
-
 ### B706. A default written `\true`, `\false` or `\null` is not read by a conditional return type
 
 **Impact: High · Complexity: Low**
@@ -75,7 +53,7 @@ condition is left undecided. A constant written `\OBJECT` is read. Every WordPre
 that echoes by default (`the_title()`, `comment_class()`,
 `wp_loginout()`, …), and every `$wp_error = \false` flag
 (`wp_insert_category()`, `wp_set_comment_status()`), gets both branches
-where the default picks one. 31 assertions.
+where the default picks one. 38 assertions.
 
 ### B707. A conditional type inside a union, an intersection or a generic argument is not evaluated
 
@@ -123,7 +101,7 @@ as `int` (22 of WordPress core's `scalar_member_access` reports),
 `wp_list_pages(['echo' => false])` and the other echoing functions take
 the first branch whatever `echo` says, and `wp_die()` with its default
 arguments matches `array{exit: false}` and is read as returning, so code
-after it stays reachable. 87 assertions, and one of PHPantom's own in
+after it stays reachable. 107 assertions, and one of PHPantom's own in
 `output-constants.php`.
 
 ### B708. A condition over a refined type is misjudged
@@ -203,7 +181,7 @@ even for an argument that is what `T` was bound to; a template bound to
 an argument wider than its `of` bound (`mixed` passed for `T of
 bool|string|int`) is not clamped to the bound; and the branch a condition
 picks does not narrow the template it tested (`T` is
-`non-falsy-string` inside the true branch above). 17 assertions.
+`non-falsy-string` inside the true branch above). 23 assertions.
 
 ## Standard-library return types
 

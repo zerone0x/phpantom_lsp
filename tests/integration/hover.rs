@@ -11193,6 +11193,61 @@ class Consumer {
     );
 }
 
+#[test]
+fn hover_reads_the_last_of_repeated_phpstan_return_tags() {
+    let backend = create_test_backend();
+    let uri = "file:///test.php";
+    let content = r#"<?php
+class Post {}
+
+/**
+ * @return Post[]|int[]
+ * @phpstan-return ($args is array{fields: 'ids', ...} ? int[] : Post[])
+ * @phpstan-return ($args is array{fields: 'id=>parent'|'ids', ...} ? array<int, int> : array<int, Post>)
+ */
+function get_posts($args = null) {}
+
+function test(): void {
+    $ids = get_posts(['fields' => 'id=>parent']);
+    $ids;
+}
+"#;
+
+    let hover = hover_at(&backend, uri, content, 12, 5).expect("expected hover on $ids");
+    let text = hover_text(&hover);
+    assert!(
+        text.contains("array<int, int>"),
+        "The last @phpstan-return should win, got: {}",
+        text
+    );
+}
+
+#[test]
+fn hover_reads_the_last_of_repeated_phpstan_param_tags() {
+    let backend = create_test_backend();
+    let uri = "file:///test.php";
+    let content = r#"<?php
+class Category {}
+
+/**
+ * @param array $args
+ * @phpstan-param array<int, string> $args
+ * @phpstan-param list<Category> $args
+ */
+function get_categories($args) {
+    $args;
+}
+"#;
+
+    let hover = hover_at(&backend, uri, content, 9, 5).expect("expected hover on $args");
+    let text = hover_text(&hover);
+    assert!(
+        text.contains("list<Category>"),
+        "The last @phpstan-param should win, got: {}",
+        text
+    );
+}
+
 // ── Hover on generic method shows substituted return type ───────────────────
 
 #[test]

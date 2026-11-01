@@ -317,8 +317,7 @@ fn bind_direct(
     ctx: &ResolutionCtx<'_>,
     from_walker: impl FnOnce() -> Option<PhpType>,
 ) -> Option<PhpType> {
-    let bare_template =
-        param_hint.is_some_and(|h| matches!(h.kind(), TypeKind::Named(n) if &**n == tpl_name));
+    let bare_template = param_hint.is_some_and(|h| is_bare_template_hint(h, tpl_name));
     if bare_template && let Some(literal) = literal_arg_type(arg_text.trim()) {
         return Some(literal);
     }
@@ -361,6 +360,23 @@ fn bind_direct(
         unify_template(h, &resolved_type, tpl_name)
     });
     Some(unified.or(literal_shape).unwrap_or(resolved_type))
+}
+
+/// Whether `hint` takes the argument as `T` itself: `T`, or a union such as
+/// `T|string` whose other members do not name `T`, so the argument binds
+/// whole rather than being unified against a wrapping type.
+fn is_bare_template_hint(hint: &PhpType, tpl_name: &str) -> bool {
+    match hint.kind() {
+        TypeKind::Named(n) => &**n == tpl_name,
+        TypeKind::Union(members) => {
+            let tpl = [atom(tpl_name)];
+            members.iter().any(|m| m.is_named(tpl_name))
+                && members
+                    .iter()
+                    .all(|m| m.is_named(tpl_name) || !m.references_any_name(&tpl))
+        }
+        _ => false,
+    }
 }
 
 /// Whether `arg_text` is an array literal, `[…]` or `array(…)`.

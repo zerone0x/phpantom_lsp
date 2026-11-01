@@ -78,6 +78,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **The last of repeated `@phpstan-return` and `@phpstan-param` tags wins.** A docblock that repeats one of these tags now uses the one written last, as PHPStan does, so stubs that refine an older declaration below it, like the WordPress stubs for `get_posts()`, resolve through the newer one.
 - **Identity checks that can never hold are `false`.** `$protocol === 'HTTP/1'` is `false`, and `!==` is `true`, when `$protocol` can only be values other than `'HTTP/1'`, such as `'HTTP/1.0'|'HTTP/1.1'`, so a typo in the compared string no longer hides behind a `bool`.
 - **Variadic template parameters take every argument.** A function declaring `@param T ...$values` with `@return T` now returns the union of everything passed to it, not just the first argument's type.
 - **Static calls with a conditional return type, passed as an argument.** `wrap(Factory::make($x))` now sees the branch of `make()`'s conditional `@return` that `$x` selects, instead of its native return type.

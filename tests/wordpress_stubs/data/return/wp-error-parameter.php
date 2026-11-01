@@ -98,44 +98,44 @@ assertType('int<0, max>|WP_Error|false', wp_unschedule_hook('hook', Faker::bool(
 /*
  * wp_insert_post()
  */
-assertType('int<0, max>', wp_insert_post([])); // SKIP: the last of two `@phpstan-return` tags is not the one read
-assertType('int<0, max>', wp_insert_post([], false)); // SKIP: the last of two `@phpstan-return` tags is not the one read
-assertType('int<0, max>', wp_insert_post([], false, true)); // SKIP: the last of two `@phpstan-return` tags is not the one read
-assertType('int<0, max>', wp_insert_post([], false, false)); // SKIP: the last of two `@phpstan-return` tags is not the one read
-assertType('int<1, max>|WP_Error', wp_insert_post([], true)); // SKIP: the last of two `@phpstan-return` tags is not the one read
-assertType('int<1, max>|WP_Error', wp_insert_post([], true, true)); // SKIP: the last of two `@phpstan-return` tags is not the one read
-assertType('int<1, max>|WP_Error', wp_insert_post([], true, false)); // SKIP: the last of two `@phpstan-return` tags is not the one read
-assertType('int<0, max>|WP_Error', wp_insert_post([], Faker::bool())); // SKIP: the last of two `@phpstan-return` tags is not the one read
-assertType('int<0, max>|WP_Error', wp_insert_post([], Faker::bool(), true)); // SKIP: the last of two `@phpstan-return` tags is not the one read
-assertType('int<0, max>|WP_Error', wp_insert_post([], Faker::bool(), false)); // SKIP: the last of two `@phpstan-return` tags is not the one read
+assertType('int<0, max>', wp_insert_post([])); // SKIP: a default written `\true`, `\false` or `\null` is not read
+assertType('int<0, max>', wp_insert_post([], false));
+assertType('int<0, max>', wp_insert_post([], false, true));
+assertType('int<0, max>', wp_insert_post([], false, false));
+assertType('int<1, max>|WP_Error', wp_insert_post([], true));
+assertType('int<1, max>|WP_Error', wp_insert_post([], true, true));
+assertType('int<1, max>|WP_Error', wp_insert_post([], true, false));
+assertType('int<0, max>|WP_Error', wp_insert_post([], Faker::bool()));
+assertType('int<0, max>|WP_Error', wp_insert_post([], Faker::bool(), true));
+assertType('int<0, max>|WP_Error', wp_insert_post([], Faker::bool(), false));
 
 /*
  * wp_update_post()
  */
-assertType('int<0, max>', wp_update_post([])); // SKIP: the last of two `@phpstan-return` tags is not the one read
-assertType('int<0, max>', wp_update_post([], false)); // SKIP: the last of two `@phpstan-return` tags is not the one read
-assertType('int<0, max>', wp_update_post([], false, true)); // SKIP: the last of two `@phpstan-return` tags is not the one read
-assertType('int<0, max>', wp_update_post([], false, false)); // SKIP: the last of two `@phpstan-return` tags is not the one read
-assertType('int<1, max>|WP_Error', wp_update_post([], true)); // SKIP: the last of two `@phpstan-return` tags is not the one read
-assertType('int<1, max>|WP_Error', wp_update_post([], true, true)); // SKIP: the last of two `@phpstan-return` tags is not the one read
-assertType('int<1, max>|WP_Error', wp_update_post([], true, false)); // SKIP: the last of two `@phpstan-return` tags is not the one read
-assertType('int<0, max>|WP_Error', wp_update_post([], Faker::bool())); // SKIP: the last of two `@phpstan-return` tags is not the one read
-assertType('int<0, max>|WP_Error', wp_update_post([], Faker::bool(), true)); // SKIP: the last of two `@phpstan-return` tags is not the one read
-assertType('int<0, max>|WP_Error', wp_update_post([], Faker::bool(), false)); // SKIP: the last of two `@phpstan-return` tags is not the one read
+assertType('int<0, max>', wp_update_post([])); // SKIP: a default written `\true`, `\false` or `\null` is not read
+assertType('int<0, max>', wp_update_post([], false));
+assertType('int<0, max>', wp_update_post([], false, true));
+assertType('int<0, max>', wp_update_post([], false, false));
+assertType('int<1, max>|WP_Error', wp_update_post([], true));
+assertType('int<1, max>|WP_Error', wp_update_post([], true, true));
+assertType('int<1, max>|WP_Error', wp_update_post([], true, false));
+assertType('int<0, max>|WP_Error', wp_update_post([], Faker::bool()));
+assertType('int<0, max>|WP_Error', wp_update_post([], Faker::bool(), true));
+assertType('int<0, max>|WP_Error', wp_update_post([], Faker::bool(), false));
 
 /*
  * wp_insert_attachment()
  */
-assertType('int<0, max>', wp_insert_attachment([])); // SKIP: the last of two `@phpstan-return` tags is not the one read
-assertType('int<0, max>', wp_insert_attachment([], true)); // SKIP: the last of two `@phpstan-return` tags is not the one read
-assertType('int<0, max>', wp_insert_attachment([], false)); // SKIP: the last of two `@phpstan-return` tags is not the one read
-assertType('int<0, max>', wp_insert_attachment([], true, 1)); // SKIP: the last of two `@phpstan-return` tags is not the one read
-assertType('int<0, max>', wp_insert_attachment([], true, 1, false)); // SKIP: the last of two `@phpstan-return` tags is not the one read
-assertType('int<0, max>', wp_insert_attachment([], true, 1, false, false)); // SKIP: the last of two `@phpstan-return` tags is not the one read
-assertType('int<0, max>', wp_insert_attachment([], true, 1, false, true)); // SKIP: the last of two `@phpstan-return` tags is not the one read
-assertType('int<1, max>|WP_Error', wp_insert_attachment([], false, 0, true)); // SKIP: the last of two `@phpstan-return` tags is not the one read
-assertType('int<1, max>|WP_Error', wp_insert_attachment([], false, 0, true, true)); // SKIP: the last of two `@phpstan-return` tags is not the one read
-assertType('int<1, max>|WP_Error', wp_insert_attachment([], false, 0, true, false)); // SKIP: the last of two `@phpstan-return` tags is not the one read
-assertType('int<0, max>|WP_Error', wp_insert_attachment([], true, 1, Faker::bool())); // SKIP: the last of two `@phpstan-return` tags is not the one read
-assertType('int<0, max>|WP_Error', wp_insert_attachment([], true, 1, Faker::bool(), true)); // SKIP: the last of two `@phpstan-return` tags is not the one read
-assertType('int<0, max>|WP_Error', wp_insert_attachment([], true, 1, Faker::bool(), false)); // SKIP: the last of two `@phpstan-return` tags is not the one read
+assertType('int<0, max>', wp_insert_attachment([])); // SKIP: a default written `\true`, `\false` or `\null` is not read
+assertType('int<0, max>', wp_insert_attachment([], true)); // SKIP: a default written `\true`, `\false` or `\null` is not read
+assertType('int<0, max>', wp_insert_attachment([], false)); // SKIP: a default written `\true`, `\false` or `\null` is not read
+assertType('int<0, max>', wp_insert_attachment([], true, 1)); // SKIP: a default written `\true`, `\false` or `\null` is not read
+assertType('int<0, max>', wp_insert_attachment([], true, 1, false));
+assertType('int<0, max>', wp_insert_attachment([], true, 1, false, false));
+assertType('int<0, max>', wp_insert_attachment([], true, 1, false, true));
+assertType('int<1, max>|WP_Error', wp_insert_attachment([], false, 0, true));
+assertType('int<1, max>|WP_Error', wp_insert_attachment([], false, 0, true, true));
+assertType('int<1, max>|WP_Error', wp_insert_attachment([], false, 0, true, false));
+assertType('int<0, max>|WP_Error', wp_insert_attachment([], true, 1, Faker::bool()));
+assertType('int<0, max>|WP_Error', wp_insert_attachment([], true, 1, Faker::bool(), true));
+assertType('int<0, max>|WP_Error', wp_insert_attachment([], true, 1, Faker::bool(), false));
