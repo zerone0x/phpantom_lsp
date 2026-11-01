@@ -35,26 +35,6 @@ gets. The WordPress stubs use them on some 150 functions, and their own
 type tests are ported in `tests/wordpress_stubs/`: each entry below names how many of
 those assertions it accounts for.
 
-### B706. A default written `\true`, `\false` or `\null` is not read by a conditional return type
-
-**Impact: High · Complexity: Low**
-
-```php
-/** @phpstan-return ($display is true ? void : string) */
-function the_title($before = '', $after = '', $display = \true) { … }
-
-the_title();   // want void, get void|string
-```
-
-An omitted argument takes the parameter's default, and the condition is
-decided by it. A default written `true` is read; written `\true`, the way
-stub generators write it (and `\false`, `\null`), it is not, and the
-condition is left undecided. A constant written `\OBJECT` is read. Every WordPress function
-that echoes by default (`the_title()`, `comment_class()`,
-`wp_loginout()`, …), and every `$wp_error = \false` flag
-(`wp_insert_category()`, `wp_set_comment_status()`), gets both branches
-where the default picks one. 38 assertions.
-
 ### B707. A conditional type inside a union, an intersection or a generic argument is not evaluated
 
 **Impact: Medium-High · Complexity: Medium**
@@ -125,7 +105,7 @@ A function declared `@return void` gives `null` to a variable assigned
 from it. When `void` comes from a branch of a conditional instead, the
 result has no type at all, a union with it drops it, and a union written
 in the stub (`string|void`) keeps `void`. The value of a call is `null`
-in all three. 89 assertions.
+in all three. 104 assertions.
 
 ### B710. A conditional over a method template ignores its bound and does not narrow it
 

@@ -78,6 +78,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Defaults written `\true`, `\false` or `\null` decide conditional return types.** An omitted argument whose parameter defaults to a fully qualified keyword, the way generated stubs write them, now picks its branch of a conditional return type, so WordPress functions such as `wp_insert_post()` and `has_filter()` return what their defaults ask for.
 - **Array-shape conditions compare the keys they name.** A conditional return type like `($args is array{fields: 'ids', ...} ? int[] : WP_Post[])` now checks the array the call passes: a missing required key, or a key holding another value, takes the other branch, and an array whose keys are unknown gets both. WordPress functions such as `get_posts()`, `wp_list_pages()` and `wp_die()` now return what their arguments ask for.
 - **The last of repeated `@phpstan-return` and `@phpstan-param` tags wins.** A docblock that repeats one of these tags now uses the one written last, as PHPStan does, so stubs that refine an older declaration below it, like the WordPress stubs for `get_posts()`, resolve through the newer one.
 - **Identity checks that can never hold are `false`.** `$protocol === 'HTTP/1'` is `false`, and `!==` is `true`, when `$protocol` can only be values other than `'HTTP/1'`, such as `'HTTP/1.0'|'HTTP/1.1'`, so a typo in the compared string no longer hides behind a `bool`.

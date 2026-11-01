@@ -65,13 +65,16 @@ fn classify_arg_form(arg: &str) -> ArgForm {
     if arg_is_float_literal(t) {
         return ArgForm::FloatLit;
     }
-    if t.eq_ignore_ascii_case("true") {
+    // Stub generators write the keywords fully qualified (`\true`), which
+    // PHP reads as the same value.
+    let keyword = t.strip_prefix('\\').unwrap_or(t);
+    if keyword.eq_ignore_ascii_case("true") {
         return ArgForm::True;
     }
-    if t.eq_ignore_ascii_case("false") {
+    if keyword.eq_ignore_ascii_case("false") {
         return ArgForm::False;
     }
-    if t.eq_ignore_ascii_case("null") {
+    if keyword.eq_ignore_ascii_case("null") {
         return ArgForm::Null;
     }
     if t.starts_with('[') || t.to_ascii_lowercase().starts_with("array(") {

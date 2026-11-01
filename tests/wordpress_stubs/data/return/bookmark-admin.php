@@ -29,7 +29,7 @@ assertType('int<0, max>', edit_link(Faker::int()));
 /*
  * wp_insert_link()
  */
-assertType('int<0, max>', wp_insert_link([])); // SKIP: a default written `\true`, `\false` or `\null` is not read
+assertType('int<0, max>', wp_insert_link([]));
 assertType('int<0, max>', wp_insert_link([], false));
 assertType('int<0, max>|WP_Error', wp_insert_link([], true));
 assertType('int<0, max>|WP_Error', wp_insert_link([], Faker::bool()));

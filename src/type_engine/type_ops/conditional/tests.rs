@@ -277,6 +277,55 @@ fn boolean_literal_arguments_decide_is_true_conditions() {
     assert_eq!(resolve(is_bool, "$value, false").as_deref(), Some("Then"));
 }
 
+/// `\true`, `\false` and `\null`, the way stub generators write defaults,
+/// are the same values as the bare keywords.
+#[test]
+fn fully_qualified_keyword_defaults_decide_conditions() {
+    let loader: &ResolvedClassLoader<'_> = &|_| None;
+    let tpl = TemplateContext::with_params(&[]);
+    let resolve = |cond: &str, default: &str, text_args: &str| {
+        let params = [param("$value"), param_with_default("$flag", default)];
+        resolve_conditional_with_text_args_and_defaults(
+            &PhpType::parse(cond),
+            &params,
+            text_args,
+            None,
+            ConditionalClassContext::default(),
+            loader,
+            &tpl,
+        )
+        .map(|t| t.to_string())
+    };
+
+    let is_true = "($flag is true ? Then : Else)";
+    assert_eq!(
+        resolve(is_true, "\\true", "$value").as_deref(),
+        Some("Then")
+    );
+    assert_eq!(
+        resolve(is_true, "\\false", "$value").as_deref(),
+        Some("Else")
+    );
+    assert_eq!(
+        resolve(is_true, "\\TRUE", "$value").as_deref(),
+        Some("Then")
+    );
+    assert_eq!(
+        resolve(is_true, "true", "$value, \\false").as_deref(),
+        Some("Else")
+    );
+
+    let is_null = "($flag is null ? Then : Else)";
+    assert_eq!(
+        resolve(is_null, "\\null", "$value").as_deref(),
+        Some("Then")
+    );
+    assert_eq!(
+        resolve(is_null, "\\false", "$value").as_deref(),
+        Some("Else")
+    );
+}
+
 /// A resolved `bool` cannot settle `is true`: the argument really may be
 /// either value. A resolved `true`/`false` can.
 #[test]

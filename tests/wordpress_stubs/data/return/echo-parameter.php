@@ -33,23 +33,23 @@ use function wp_title;
 use function PHPStan\Testing\assertType;
 
 // Default value of true
-assertType('null', comment_class()); // SKIP: a default written `\true`, `\false` or `\null` is not read
+assertType('null', comment_class()); // SKIP: `void` from a conditional return type is not read as `null`
 assertType('null', edit_term_link()); // SKIP: a conditional type inside a union, an intersection or a generic argument is not evaluated
 assertType('null', get_calendar()); // SKIP: `void` from a conditional return type is not read as `null`
-assertType('null', next_posts()); // SKIP: a default written `\true`, `\false` or `\null` is not read
-assertType('null', post_type_archive_title()); // SKIP: a default written `\true`, `\false` or `\null` is not read
-assertType('null', previous_posts()); // SKIP: a default written `\true`, `\false` or `\null` is not read
-assertType('null', single_cat_title()); // SKIP: a default written `\true`, `\false` or `\null` is not read
-assertType('false|null', single_month_title()); // SKIP: a default written `\true`, `\false` or `\null` is not read
-assertType('null', single_post_title()); // SKIP: a default written `\true`, `\false` or `\null` is not read
-assertType('null', single_tag_title()); // SKIP: a default written `\true`, `\false` or `\null` is not read
-assertType('null', single_term_title()); // SKIP: a default written `\true`, `\false` or `\null` is not read
-assertType('null', the_date()); // SKIP: a default written `\true`, `\false` or `\null` is not read
-assertType('null', the_modified_date()); // SKIP: a default written `\true`, `\false` or `\null` is not read
-assertType('null', the_title()); // SKIP: a default written `\true`, `\false` or `\null` is not read
-assertType('null', wp_loginout()); // SKIP: a default written `\true`, `\false` or `\null` is not read
-assertType('null', wp_register()); // SKIP: a default written `\true`, `\false` or `\null` is not read
-assertType('null', wp_title()); // SKIP: a default written `\true`, `\false` or `\null` is not read
+assertType('null', next_posts()); // SKIP: `void` from a conditional return type is not read as `null`
+assertType('null', post_type_archive_title()); // SKIP: `void` from a conditional return type is not read as `null`
+assertType('null', previous_posts()); // SKIP: `void` from a conditional return type is not read as `null`
+assertType('null', single_cat_title()); // SKIP: `void` from a conditional return type is not read as `null`
+assertType('false|null', single_month_title()); // SKIP: `void` from a conditional return type is not read as `null`
+assertType('null', single_post_title()); // SKIP: `void` from a conditional return type is not read as `null`
+assertType('null', single_tag_title()); // SKIP: `void` from a conditional return type is not read as `null`
+assertType('null', single_term_title()); // SKIP: `void` from a conditional return type is not read as `null`
+assertType('null', the_date()); // SKIP: `void` from a conditional return type is not read as `null`
+assertType('null', the_modified_date()); // SKIP: `void` from a conditional return type is not read as `null`
+assertType('null', the_title()); // SKIP: `void` from a conditional return type is not read as `null`
+assertType('null', wp_loginout()); // SKIP: `void` from a conditional return type is not read as `null`
+assertType('null', wp_register()); // SKIP: `void` from a conditional return type is not read as `null`
+assertType('null', wp_title()); // SKIP: `void` from a conditional return type is not read as `null`
 
 // Explicit value of true
 $value = true;
